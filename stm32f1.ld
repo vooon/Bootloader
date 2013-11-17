@@ -27,55 +27,5 @@ MEMORY
 	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 8K
 }
 
-/* Enforce emmission of the vector table. */
-EXTERN (vector_table)
-
-/* Define sections. */
-SECTIONS
-{
-        . = ORIGIN(rom);
-
-        .text : {
-                *(.vectors)     /* Vector table */
-                *(.text*)       /* Program code */
-                . = ALIGN(4);
-                *(.rodata*)     /* Read-only data */
-                . = ALIGN(4);
-                _etext = .;
-        } >rom
-
-        /* Just working around a bug in libopencm3 / vector.c */
-        . = ALIGN(4);
-        .ARM.exidx : {
-            __exidx_start = .;
-            *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-            __exidx_end = .;
-        } >rom
-
-        . = ORIGIN(ram);
-
-        .data : AT(_etext) {
-                _data = .;
-                *(.data*)       /* Read-write initialized data */
-                . = ALIGN(4);
-                _edata = .;
-        } >ram
-
-        .bss : {
-                *(.bss*)        /* Read-write zero initialized data */
-                *(COMMON)
-                . = ALIGN(4);
-                _ebss = .;
-        } >ram AT >rom
-
-        /*
-         * The .eh_frame section appears to be used for C++ exception handling.
-         * You may need to fix this if you're using C++.
-         */
-        /DISCARD/ : { *(.eh_frame) }
-
-        . = ALIGN(4);
-        end = .;
-}
-
-PROVIDE(_stack = 0x20002000);
+/* Include the common ld script. */
+INCLUDE libopencm3_stm32f1.ld

@@ -21,14 +21,13 @@
 #include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/f4/gpio.h>
 #include <libopencm3/stm32/f4/flash.h>
-#include <libopencm3/stm32/nvic.h>
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 
 #include "bl.h"
 
 static const char *usb_strings[] = {
-	"",
 	"3D Robotics",
 	USBDEVICESTRING,
 	"0",
@@ -168,11 +167,15 @@ static const struct usb_config_descriptor config = {
 	.interface = ifaces,
 };
 
-static int cdcacm_control_request(struct usb_setup_data *req, u8 **buf,
-		u16 *len, void (**complete)(struct usb_setup_data *req))
+/* Buffer to be used for control requests. */
+uint8_t usbd_control_buffer[128];
+
+static int cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf,
+		uint16_t *len, void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req))
 {
 	(void)complete;
 	(void)buf;
+	(void)usbd_dev;
 
 	switch (req->bRequest) {
 	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
@@ -192,39 +195,42 @@ static int cdcacm_control_request(struct usb_setup_data *req, u8 **buf,
 	return 0;
 }
 
-static void cdcacm_data_rx_cb(u8 ep)
+static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 {
 	(void)ep;
 
 	char buf[64];
 	unsigned i;
-	unsigned len = usbd_ep_read_packet(0x01, buf, 64);
+	unsigned len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
 
 	for (i = 0; i < len; i++)
 		buf_put(buf[i]);
 }
 
-static void cdcacm_set_config(u16 wValue)
+static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
 
-	usbd_ep_setup(0x01, USB_ENDPOINT_ATTR_BULK, 64, cdcacm_data_rx_cb);
-	usbd_ep_setup(0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
-	usbd_ep_setup(0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64, cdcacm_data_rx_cb);
+	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+	usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
 	usbd_register_control_callback(
+				usbd_dev,
 				USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
 				USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
 				cdcacm_control_request);
 }
 
+/* usb device handler */
+static usbd_device *usbd_dev;
+
 void cdc_init(void)
 {
-
 	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPAEN);
 	rcc_peripheral_enable_clock(&RCC_AHB2ENR, RCC_AHB2ENR_OTGFSEN);
 
-#if (BOARD == PX4FLOW || BOARD == CAPTAINPRO2)
+#if defined(BOARD_FLOW) || defined(BOARD_CAPTAINPRO2)
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
 #else
@@ -232,19 +238,22 @@ void cdc_init(void)
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO9 | GPIO11 | GPIO12);
 #endif
 
-	usbd_init(&otgfs_usb_driver, &dev, &config, usb_strings);
-	usbd_register_set_config_callback(cdcacm_set_config);
+	usbd_dev = usbd_init(&otgfs_usb_driver, &dev, &config, usb_strings, 3,
+			usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
+
+	usbd_poll(usbd_dev);
 }
 
 static void cdc_disconnect(void)
 {
-	usbd_disconnect(true);
+	usbd_disconnect(usbd_dev, true);
 }
 
 void
 otg_fs_isr(void)
 {
-	usbd_poll();
+	usbd_poll(usbd_dev);
 }
 
 void
@@ -274,7 +283,7 @@ cout(uint8_t *buf, unsigned count)
 		unsigned len = (count > 64) ? 64 : count;
 		unsigned sent;
 
-		sent = usbd_ep_write_packet(0x82, buf, len);
+		sent = usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
 
 		count -= sent;
 		buf += sent;

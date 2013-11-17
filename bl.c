@@ -11,17 +11,17 @@
 # include <libopencm3/stm32/f4/rcc.h>
 # include <libopencm3/stm32/f4/gpio.h>
 # include <libopencm3/stm32/f4/flash.h>
-# include <libopencm3/stm32/f4/scb.h>
+# include <libopencm3/cm3/scb.h>
 #elif defined(STM32F1)
 # include <libopencm3/stm32/f1/rcc.h>
 # include <libopencm3/stm32/f1/gpio.h>
 # include <libopencm3/stm32/f1/flash.h>
-# include <libopencm3/stm32/f1/scb.h>
+# include <libopencm3/cm3/scb.h>
 #else
 # error Unsupported chip
 #endif
 
-#include <libopencm3/stm32/systick.h>
+#include <libopencm3/cm3/systick.h>
 
 #include "bl.h"
 
