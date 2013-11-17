@@ -141,6 +141,14 @@ static struct {
 # define BOARD_CLOCK_LEDS		RCC_AHB1ENR_IOPBEN
 # define BOARD_LED_ON			gpio_clear
 # define BOARD_LED_OFF			gpio_set
+
+# define BOARD_FORCE_BL_PIN_OUT		GPIO5
+# define BOARD_FORCE_BL_PIN_IN		GPIO4
+# define BOARD_FORCE_BL_PORT		GPIOC
+# define BOARD_FORCE_BL_CLOCK_REGISTER	RCC_AHB1ENR
+# define BOARD_FORCE_BL_CLOCK_BIT	RCC_AHB1ENR_IOPCEN
+# define BOARD_FORCE_BL_PULL		GPIO_PUPD_PULLUP
+
 #endif
 
 
@@ -460,7 +468,7 @@ main(void)
 #endif
 
 	/* Try to boot the app if we think we should just go straight there */
-	if (try_boot) {
+	if (try_boot && !board_test_force_pin()) {
 
 		/* set the boot-to-bootloader flag so that if boot fails on reset we will stop here */
 #ifdef BOARD_BOOT_FAIL_DETECT
