@@ -264,14 +264,12 @@ cfini()
 int
 cin(void)
 {
-	usbd_poll();
 	return buf_get();
 }
 
 void
 cout(uint8_t *buf, unsigned count)
 {
-	uspd_poll();
 	while (count) {
 		unsigned len = (count > 64) ? 64 : count;
 		unsigned sent;
