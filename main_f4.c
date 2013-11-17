@@ -129,7 +129,7 @@ static struct {
 #endif
 
 #ifdef BOARD_CAPTAINPRO2
-# define BOARD_TYPE			5
+# define BOARD_TYPE			90
 # define BOARD_FLASH_SECTORS		11
 # define BOARD_FLASH_SIZE		(1024 * 1024)
 
