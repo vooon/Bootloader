@@ -35,7 +35,7 @@ export COMMON_SRCS	 = bl.c
 #
 # Bootloaders to build
 #
-TARGETS			 = px4fmu_bl px4fmuv2_bl px4flow_bl stm32f4discovery_bl px4io_bl
+TARGETS			 = px4fmu_bl px4fmuv2_bl px4flow_bl stm32f4discovery_bl px4io_bl captainpro2_bl
 
 # px4io_bl px4flow_bl
 
@@ -63,6 +63,9 @@ stm32f4discovery_bl: $(MAKEFILE_LIST)
 
 px4flow_bl: $(MAKEFILE_LIST)
 	make -f Makefile.f4 TARGET=flow INTERFACE=USB BOARD=FLOW USBDEVICESTRING="\\\"PX4 FLOW v1.3\\\"" USBPRODUCTID="0x0015"
+
+captainpro2_bl: $(MAKEFILE_LIST)
+	make -f Makefile.f4 TARGET=captainpro2 INTERFACE=USB BOARD=CAPTAINPRO2 USBDEVICESTRING="\\\"PX4 BL CAPTAIN PRO2\\\"" USBPRODUCTID="0x0001"
 
 # Default bootloader delay is *very* short, just long enough to catch
 # the board for recovery but not so long as to make restarting after a 

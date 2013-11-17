@@ -128,6 +128,21 @@ static struct {
 //# define BOARD_BOOT_FAIL_DETECT		/* V2 boards should support boot failure detection */
 #endif
 
+#ifdef BOARD_CAPTAINPRO2
+# define BOARD_TYPE			5
+# define BOARD_FLASH_SECTORS		11
+# define BOARD_FLASH_SIZE		(1024 * 1024)
+
+# define OSC_FREQ			8
+
+# define BOARD_PIN_LED_ACTIVITY		GPIO3
+# define BOARD_PIN_LED_BOOTLOADER	GPIO4
+# define BOARD_PORT_LEDS		GPIOB
+# define BOARD_CLOCK_LEDS		RCC_AHB1ENR_IOPBEN
+# define BOARD_LED_ON			gpio_clear
+# define BOARD_LED_OFF			gpio_set
+#endif
+
 
 #define APP_SIZE_MAX			(BOARD_FLASH_SIZE - BOOTLOADER_RESERVATION_SIZE)
 

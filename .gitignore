@@ -9,3 +9,4 @@ Bootloader.sublime-workspace
 .gdbinit
 px4fmuv2_bl.bin
 *.swp
+px4captainpro2_bl.bin

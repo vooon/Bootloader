@@ -53,3 +53,7 @@ flash-bootloader:
 # build openocd with "cd openocd; ./bootstrap; ./configure --enable-maintainer-mode --enable-stlink"
 upload-discovery: 
 	$(OPENOCD) --search ../px4_bootloader -f board/stm32f4discovery.cfg -c init -c "reset halt" -c "flash probe 0" -c "stm32f2x mass_erase 0" -c "flash write_image erase $(BINARY) 0x08000000" -c "reset" -c shutdown
+
+upload-captainpro2:
+	$(OPENOCD) --search ../px4_bootloader -f interface/stlink-v2.cfg -f target/stm32f4x_stlink.cfg -c init -c "reset halt" -c "flash probe 0" -c "stm32f2x mass_erase 0" -c "flash write_image erase $(BINARY) 0x08000000" -c "reset" -c shutdown
+

@@ -224,7 +224,7 @@ void cdc_init(void)
 	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPAEN);
 	rcc_peripheral_enable_clock(&RCC_AHB2ENR, RCC_AHB2ENR_OTGFSEN);
 
-#if (BOARD == PX4FLOW)
+#if (BOARD == PX4FLOW || BOARD == CAPTAINPRO2)
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
 #else
@@ -264,12 +264,14 @@ cfini()
 int
 cin(void)
 {
+	usbd_poll();
 	return buf_get();
 }
 
 void
 cout(uint8_t *buf, unsigned count)
 {
+	uspd_poll();
 	while (count) {
 		unsigned len = (count > 64) ? 64 : count;
 		unsigned sent;
