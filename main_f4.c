@@ -433,7 +433,8 @@ main(void)
 	 * Check the force-bootloader register; if we find the signature there, don't
 	 * try booting.
 	 */
-	if (board_get_rtc_signature() == BOOT_RTC_SIGNATURE) {
+	if (board_get_rtc_signature() == BOOT_RTC_SIGNATURE ||
+		board_test_force_pin()) {
 
 		/*
 		 * Don't even try to boot before dropping to the bootloader.
@@ -452,7 +453,7 @@ main(void)
 		board_set_rtc_signature(0);
 	}
 
-#ifdef INTERFACE_USB
+#if defined(INTERFACE_USB) && !defined(BOARD_CAPTAINPRO2)
 	/*
 	 * Check for USB connection - if present, don't try to boot, but set a timeout after
 	 * which we will fall out of the bootloader.
@@ -468,7 +469,7 @@ main(void)
 #endif
 
 	/* Try to boot the app if we think we should just go straight there */
-	if (try_boot && !board_test_force_pin()) {
+	if (try_boot) {
 
 		/* set the boot-to-bootloader flag so that if boot fails on reset we will stop here */
 #ifdef BOARD_BOOT_FAIL_DETECT

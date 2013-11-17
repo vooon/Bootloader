@@ -21,6 +21,7 @@
 #include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/f4/gpio.h>
 #include <libopencm3/stm32/f4/flash.h>
+#include <libopencm3/stm32/otg_fs.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
@@ -233,6 +234,7 @@ void cdc_init(void)
 #if defined(BOARD_FLOW) || defined(BOARD_CAPTAINPRO2)
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
+	OTG_FS_GCCFG |= (1<<21); // GCCFG_NOVBUSSENS
 #else
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9 | GPIO11 | GPIO12);
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO9 | GPIO11 | GPIO12);
@@ -241,8 +243,6 @@ void cdc_init(void)
 	usbd_dev = usbd_init(&otgfs_usb_driver, &dev, &config, usb_strings, 3,
 			usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
-
-	usbd_poll(usbd_dev);
 }
 
 static void cdc_disconnect(void)
